@@ -1,0 +1,9 @@
+hits_cluster_plots/
+hits_clusters_interesting_events/
+test_trees/
+trained_models/
+*.root/
+extlib/
+plots/
+*.sif
+*.img
