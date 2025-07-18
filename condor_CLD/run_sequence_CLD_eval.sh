@@ -61,4 +61,3 @@ python make_pftree_clic_bindings.py out_reco_edm4hep_REC.edm4hep.root tree1.root
 
 mkdir -p ${OUTPUTDIR}
 python /afs/cern.ch/work/f/fccsw/public/FCCutils/eoscopy.py tree1.root ${OUTPUTDIR}/pf_tree_${SEED}.root
-

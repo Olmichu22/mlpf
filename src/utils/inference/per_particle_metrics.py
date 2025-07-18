@@ -904,8 +904,8 @@ def plot_cm_per_energy(sd_hgb, sd_pandora, path_store_summary_plots, path_store,
     n_plots = 3
     if sd_hgb_gt is None:
         n_plots = 2
-    fig, ax = plt.subplots(n_plots, 3, figsize=(12, 12 * n_plots / 3))
-    energies = [0, 1, 10, 100]
+    fig, ax = plt.subplots(n_plots, 4, figsize=(12, 12 * n_plots / 3))
+    energies = [0, 1, 5, 10, 100]
     for i in range(len(energies) - 1):
         cond = ((sd_hgb.true_showers_E > energies[i]) & (sd_hgb.true_showers_E < energies[i + 1])) | (np.isnan(sd_hgb.pid) & ((sd_hgb.pred_showers_E > energies[i]) & (sd_hgb.pred_showers_E < energies[i + 1])))
         sd_hgb_i = sd_hgb[cond]
@@ -927,7 +927,7 @@ def plot_cm_per_energy(sd_hgb, sd_pandora, path_store_summary_plots, path_store,
 def plot_cm_per_energy_on_overview(sd_hgb, sd_pandora, path_store, ax):
     # Plot confusion matrix for each energy bin, but on an external plot
     # Ax should be as follows: ax[i, 0]: CM by energy; ax[i, 1]: CM-Pandora by energy
-    energies = [0, 1, 10, 100]
+    energies = [0, 1, 5, 10, 100]
     for i in range(len(energies) - 1):
         cond = ((sd_hgb.true_showers_E > energies[i]) & (sd_hgb.true_showers_E < energies[i + 1])) | (np.isnan(sd_hgb.pid) & ((sd_hgb.pred_showers_E > energies[i]) & (sd_hgb.pred_showers_E < energies[i + 1])))
         sd_hgb_i = sd_hgb[cond]
@@ -1126,9 +1126,9 @@ def plot_per_energy_resolution2_multiple(
     )
     fig_event_res, ax_event_res = plt.subplots(1, 1, figsize=(7, 7))
     PIDs = [22, 11, 130, 211, 2112, 2212]
-    fig_distr, ax_distr = plt.subplots(len(PIDs), 3, figsize=(len(PIDs) * 5, 18))
+    fig_distr, ax_distr = plt.subplots(len(PIDs), 3, figsize=(len(PIDs) * 5, 18)) # Cambia a 12
     matplotlib.rcParams["font.size"] = 11
-    fig_distr_reco, ax_distr_reco = plt.subplots(len(PIDs), 3, figsize=(len(PIDs) * 2.5, 9))
+    fig_distr_reco, ax_distr_reco = plt.subplots(len(PIDs), 3, figsize=(len(PIDs) * 2.5, 9)) # Cambiar a 12
     photons_dic_all, electrons_dic_all, hadrons_dic_all, hadrons_dic2_all, neutrons_all, protons_all = {}, {}, {}, {}, {}, {}
     for key in matched_all:
         matched_ = matched_all[key]
@@ -1327,8 +1327,8 @@ def plot_per_energy_resolution2_multiple(
                 if len(hadrons_dic["energy_resolutions"]) > 0:
                     plot_pxyz_resolution(hadrons_dic["energy_resolutions"], hadrons_dic["mean_pxyz_pandora"], hadrons_dic["mean_pxyz"], axs_response_pxyz[130], key)'''
                 #plot_pxyz_resolution(event_res_dic[key]["energy_resolutions"], protons["mean_pxyz_pandora"], protons["mean_pxyz"], axs_response_pxyz[2212], key)
-                fig_phi, ax_phi = plt.subplots(len(PIDs), 3, figsize=(len(PIDs)*2.5, 10))
-                fig_theta, ax_theta = plt.subplots(len(PIDs), 3, figsize=(len(PIDs)*2.5, 10))
+                fig_phi, ax_phi = plt.subplots(len(PIDs), len(photons_dic["distr_phi"]), figsize=(len(PIDs)*2.5, 10))
+                fig_theta, ax_theta = plt.subplots(len(PIDs), len(photons_dic["distr_theta"]), figsize=(len(PIDs)*2.5, 10))
                 # matplotlib.rcParams["font.size"] = 10
                 fig_all_angles, ax_all_angles = plt.subplots(5, 2, figsize=(8, 14))  # For the total energy resolution
                 for j, angle in enumerate(["theta", "phi"]):
@@ -2747,7 +2747,7 @@ def calculate_response(matched, pandora, log_scale=False, tracks=False, perfect_
         bins = np.exp(np.arange(np.log(0.1), np.log(80), 0.3))
     else:
         #bins = np.linspace(0, 51, 5)
-        bins = [0, 5, 15,  51]
+        bins = [0, 5, 15,  51] # Linea para cambiar bins
     mean = []
     variance_om = []
     mean_baseline = []
@@ -3133,6 +3133,9 @@ def plot_one_label(
         if not type(ax_distr) == list and not type(ax_distr) == np.ndarray:
             ax_distr = [ax_distr]
             ax_distr_reco = [ax_distr_reco]
+    print("TAMAÑOS QUE FALLAN")
+    print(len(photons_dic["energy_resolutions" + reco]))
+    print(len(photons_dic["energy_resolutions"]))
     for i in range(len(photons_dic["energy_resolutions" + reco])):
         distr_model = photons_dic["distributions_model"][i]
         distr_pandora = photons_dic["distributions_pandora"][i]
@@ -3204,6 +3207,11 @@ def plot_one_label(
                         label="Baseline",
                         s=50,
                     )
+            # Eliminamos posibles nan de photons_dic["energy_resolutions"]
+            # for el in zip(photons_dic["energy_resolutions"], photons_dic["variance_om_baseline"]):
+            #     if np.isnan(el[0]) or np.isnan(el[1]):
+            #         photons_dic["energy_resolutions"].remove(el[0])
+            #         photons_dic["variance_om_baseline"].remove(el[1])
             dic0_fit = get_fit(
                 photons_dic["energy_resolutions"], photons_dic["variance_om_baseline"]
             )
@@ -3375,13 +3383,15 @@ def plot_full_comparison(photons_dic, electrons_dic, hadrons_dic, hadrons_dic2, 
     fig_distr, ax_distr = plt.subplots(6, 4, figsize=(14, 14/4*6))
     default_key= "ML"
     for i, dic in enumerate(dics):
-        bins = [0, 5, 15, 50]
+        bins = [0, 1, 2, 4, 6, 8, 10, 15, 50]
         bin_labels = [f"[{bins[i]},{bins[i + 1]}]" for i in range(len(bins) - 1)]
         ax_distr[i, 0].plot(dic[default_key]["energy_resolutions_p"], dic[default_key]["variance_om_p_reco"] / dic[default_key]["energy_resolutions_p"], ".--", c="blue", label="Pandora")
         for key in dic:
             ax_distr[i, 0].plot(dic[key]["energy_resolutions"], dic[key]["variance_om_reco"] / dic[key]["energy_resolutions"], ".--", c=colors[key], label=key)
         # ax_distr[i, 0].plot(dic["energy_resolutions"], dic["variance_om_baseline"] / dic["energy_resolutions"], ".--", c="k", label="Baseline")
-        ax_distr[i, 0].set_xticks([2.5, 10.0, 33.0])
+        # ax_distr[i, 0].set_xticks([2.5, 10.0, 33.0])
+        # Set x_ticks in the middle of the bins
+        ax_distr[i, 0].set_xticks([(bins[j] + bins[j + 1]) / 2 for j in range(len(bins) - 1)])
         ax_distr[i, 0].set_xticklabels(bin_labels, fontsize=10)  # Set the corresponding bin range labels
         ax_distr[i, 0].tick_params(axis='x', which='both', direction='inout')
         ax_distr[i, 0].set_xlabel("Energy [GeV]", fontsize=SMALL_SIZE)
@@ -3395,7 +3405,7 @@ def plot_full_comparison(photons_dic, electrons_dic, hadrons_dic, hadrons_dic2, 
         ax_distr[i, 1].set_xlabel("Energy [GeV]", fontsize=SMALL_SIZE)
         ax_distr[i, 1].set_title(pid_names[pids[i]])
         ax_distr[i, 1].set_ylabel("$\sigma_E / E$")
-        ax_distr[i, 1].set_xticks([2.5, 10.0, 33.0])
+        ax_distr[i, 0].set_xticks([(bins[j] + bins[j + 1]) / 2 for j in range(len(bins) - 1)])
         ax_distr[i, 1].set_xticklabels(bin_labels, fontsize=10)  # Set the corresponding bin range labels
         ax_distr[i, 1].tick_params(axis='x', which='both', direction='inout')
         ax_distr[i, 0].set_ylabel("$\sigma_{E_{reco}} / E_{reco}$")

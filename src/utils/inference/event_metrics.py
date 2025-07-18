@@ -130,16 +130,34 @@ def calculate_event_mass_resolution(df, pandora, perfect_pid=False, mass_zero=Fa
     true_e[mask_nan_true] = 0
     batch_idx = df.number_batch
     if pandora:
-        pred_E = df.pandora_calibrated_pfo.values
-        nan_mask = np.isnan(df.pandora_calibrated_pfo.values)
-        pred_E[nan_mask] = 0
-        pred_e1 = torch.tensor(pred_E).unsqueeze(1).repeat(1, 3)
-        pred_vect = torch.tensor(np.array(df.pandora_calibrated_pos.values.tolist()))
-        nan_mask_p = torch.isnan(pred_vect).any(dim=1)
-        pred_vect[nan_mask_p] = 0
-        true_vect = torch.tensor(np.array(df.true_pos.values.tolist()))
-        mask_nan_p = torch.isnan(true_vect).any(dim=1)
-        true_vect[mask_nan_true] = 0
+        try:
+            pred_E = df.pandora_calibrated_pfo.values
+            nan_mask = np.isnan(df.pandora_calibrated_pfo.values)
+            # print("\n")
+            # print("=======================")
+            # print("Energía predicha", pred_E)
+            # print("=======================")
+            
+            pred_E[nan_mask] = 0
+            pred_e1 = torch.tensor(pred_E).unsqueeze(1).repeat(1, 3)
+            pred_vect = torch.tensor(np.array(df.pandora_calibrated_pos.values.tolist()))
+            # print("\n")
+            # print("=======================")
+            # print("Posiciones", pred_vect)
+            # print("=======================")
+            
+            
+            nan_mask_p = torch.isnan(pred_vect).any(dim=1)
+            pred_vect[nan_mask_p] = 0
+            true_vect = torch.tensor(np.array(df.true_pos.values.tolist()))
+            mask_nan_p = torch.isnan(true_vect).any(dim=1)
+            true_vect[mask_nan_true] = 0
+        except Exception as e:
+            print("Energía predicha", pred_E)
+            print("Energía predicha vector", pred_e1)
+            print("Posiciones", pred_vect)
+            raise e
+        
     else:
         pred_E = df.calibrated_E.values
         nan_mask = np.isnan(df.calibrated_E.values)
@@ -333,6 +351,8 @@ def get_mass_contribution_per_category(matched_pandora, matched_, perfect_pid=Fa
 
     for pid in [0, 1, 2, 3]:
         filt_pandora_pred = matched_pandora.pandora_pid.isin(our_to_pandora_mapping[pid])
+        # print(pid)
+        # print(our_to_pandora_mapping)
         filt_model_pred = matched_.pred_pid_matched == pid
         filt_model_true = matched_.pid_4_class_true == pid
         filt_pandora_true = matched_pandora.pid_4_class_true == pid

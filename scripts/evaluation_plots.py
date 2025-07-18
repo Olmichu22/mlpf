@@ -18,7 +18,7 @@ def main():
     # "/eos/user/m/mgarciam/datasets_mlpf/models_trained/logs_10_15_allp_karolina1/large_eval/analysis/out.bin.gz",
     # /eos/user/m/mgarciam/datasets_mlpf/models_trained/logs_10_15_allp_karolina/training_evaluation_test2309/analysis/out_matchedshowers.bin.gz
     data = pd.read_pickle(
-        "/eos/user/m/mgarciam/datasets_mlpf/models_trained/mlpf_all_energies/showers_df_evaluation/0_0_None.pt"
+        "trained_models/eval_comp/showers_df_evaluation/0_0_None_hdbscan_option9_v1.pt"
     )
     if neutrals_only:
         sd = pd.concat([data[data["pid"] == 130], data[data["pid"] == 2112]])
@@ -30,7 +30,7 @@ def main():
     dic2 = True
     if dic2:
         data = pd.read_pickle(
-            "/eos/user/m/mgarciam/datasets_mlpf/models_trained/mlpf_all_energies/showers_df_evaluation/0_0_None_pandora.pt"
+            "trained_models/eval_comp/showers_df_evaluation/0_0_None_pandora_option9_v1.pt"
         )
         if neutrals_only:
             sd = pd.concat([data[data["pid"] == 130], data[data["pid"] == 2112]])
@@ -177,12 +177,12 @@ def main():
     ax[2, 1].grid()
     if neutrals_only:
         fig.savefig(
-            "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/testeq_rec_neutrals.png",
+            "trained_models/eval_comp/testeq_rec_neutrals.png",
             bbox_inches="tight",
         )
     else:
         fig.savefig(
-            "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/testeq_rec.png",
+            "trained_models/eval_comp/testeq_rec.png",
             bbox_inches="tight",
         )
 
@@ -194,7 +194,7 @@ def main():
     plt.ylabel("Efficiency")
     plt.grid()
     fig.savefig(
-        "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/Efficiency.png",
+        "trained_models/eval_comp/Efficiency.png",
         bbox_inches="tight",
     )
 
@@ -206,7 +206,7 @@ def main():
     plt.grid()
     plt.yscale("log")
     fig.savefig(
-        "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/Fake.png",
+        "trained_models/eval_comp/Fake.png",
         bbox_inches="tight",
     )
 
@@ -217,7 +217,7 @@ def main():
     plt.ylabel("Response")
     plt.grid()
     fig.savefig(
-        "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/Response.png",
+        "trained_models/eval_comp/Response.png",
         bbox_inches="tight",
     )
 
@@ -229,7 +229,7 @@ def main():
     plt.grid()
 
     fig.savefig(
-        "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/Resolution.png",
+        "trained_models/eval_comp/Resolution.png",
         bbox_inches="tight",
     )
 
@@ -249,7 +249,7 @@ def main():
     plt.ylabel("Containing")
     plt.grid()
     fig.savefig(
-        "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/Containing.png",
+        "trained_models/eval_comp/Containing.png",
         bbox_inches="tight",
     )
 
@@ -270,6 +270,8 @@ def main():
     plt.grid()
 
     fig.savefig(
-        "/afs/cern.ch/work/m/mgarciam/private/mlpf/summ_results/Pandora/Purity.png",
+        "trained_models/eval_comp/Purity.png",
         bbox_inches="tight",
     )
+if __name__ == "__main__":
+    main()

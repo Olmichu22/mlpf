@@ -12,7 +12,7 @@ def calculate_eff(sd, log_scale=False, pandora=False):
     if log_scale:
         bins = np.exp(np.arange(np.log(0.1), np.log(80), 0.3))
     else:
-        bins = [0, 5, 10, 35, 50]
+        bins = [0, 1, 2, 4, 6, 8, 10, 15, 50]
     eff = []
     energy_eff = []
     for i in range(len(bins) - 1):
@@ -42,7 +42,7 @@ def calculate_fakes(sd, matched, log_scale=False, pandora=False, id=None):
     if log_scale:
         bins_fakes = np.exp(np.arange(np.log(0.1), np.log(80), 0.3))
     else:
-        bins_fakes = [0, 5, 15, 35, 50]
+        bins_fakes = [0, 1, 2, 4, 6, 8, 10, 15, 50]
     fake_rate = []
     energy_fakes = []
     fake_percent_energy = []

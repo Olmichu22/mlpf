@@ -78,7 +78,12 @@ path_hgcal = os.path.join(dir_top, path_ML)
 sd_hgb, _ = open_mlpf_dataframe(path_hgcal, False)
 sd_pandora, _ = open_mlpf_dataframe(os.path.join(dir_top, path_pandora), False)
 sd_hgb, sd_pandora = preprocess_dataframe(sd_hgb, sd_pandora, args.preprocess.split(","))
+print(sd_hgb)
+print(type(sd_hgb))
+sd_hgb.to_csv(os.path.join(dir_top, "sd_hgb.csv"), index=False)
+sd_pandora.to_csv(os.path.join(dir_top, "sd_pandora.csv"), index=False)
 
+print(sd_pandora)
 #sd_hgb_gt = open_mlpf_dataframe(path_hgcal_GTC, False)
 '''
 ch = sd_hgb[sd_hgb.pred_pid_matched == 1]
@@ -156,7 +161,8 @@ if args.mass_only:
 
 plot_mass_contribution_per_category(sd_hgb, sd_pandora, PATH_store_summary_plots)
 plot_mass_contribution_per_category(sd_hgb, sd_pandora, PATH_store_summary_plots, energy_bins=[0, 1])
-plot_mass_contribution_per_category(sd_hgb, sd_pandora, PATH_store_summary_plots, energy_bins=[1, 10])
+plot_mass_contribution_per_category(sd_hgb, sd_pandora, PATH_store_summary_plots, energy_bins=[1, 5])
+plot_mass_contribution_per_category(sd_hgb, sd_pandora, PATH_store_summary_plots, energy_bins=[5, 10])
 plot_mass_contribution_per_category(sd_hgb, sd_pandora, PATH_store_summary_plots, energy_bins=[10, 100])
 plot_mass_contribution_per_PID(sd_hgb, sd_pandora, PATH_store_summary_plots)
 plot_fake_and_missed_energy_regions(sd_pandora, sd_hgb, PATH_store_summary_plots)

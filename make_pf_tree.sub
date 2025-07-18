@@ -1,0 +1,30 @@
+#######################  make_pf_tree.sub  #######################
+universe               = vanilla
+executable             = make_pf_tree.sh
+
+# --- Argumentos que recibe el wrapper ----------------------------------
+#  $(HOME)   : repositorio MLPF (igual para todos los jobs)
+#  $(RECO)   : archivo reco que se procesa (línea del input file)
+#  $(ClusterId).$(ProcId) : ID único → SEED
+#  $(OUT)    : directorio destino en EOS/xrootd
+arguments              = $(HOME) $(RECO) $(ClusterId).$(ProcId) $(OUT)
+
+# --- Archivos que Condor ha de llevar al nodo --------------------------
+transfer_input_files   = $(HOME)/condor/make_pf_tree_clic_bindings.py,\
+                         $(HOME)/condor/tree_tools.py
+should_transfer_files  = Yes
+when_to_transfer_output = ON_EXIT
+
+# --- Recursos (ajusta a tu cola) ---------------------------------------
+request_cpus           = 1
+request_memory         = 4 GB
++JobFlavour            = "workday"     # 8 h en la CERN batch
+
+# --- Logs --------------------------------------------------------------
+output                 = $(LOGDIR)/pf_$(ClusterId)_$(ProcId).out
+error                  = $(LOGDIR)/pf_$(ClusterId)_$(ProcId).err
+log                    = $(LOGDIR)/pf_$(ClusterId).log
+
+# --- Queuing: un job por línea en reco_files.txt -----------------------
+queue RECO from reco_files.txt
+######################################################################

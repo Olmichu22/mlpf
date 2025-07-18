@@ -1,0 +1,44 @@
+000 (96246.000.000) 2025-06-10 11:42:25 Job submitted from host: <172.17.47.42:9618?addrs=172.17.47.42-9618&alias=condorsc1.ciemat.es&noUDP&sock=schedd_1062_05ab>
+...
+040 (96246.000.000) 2025-06-10 11:42:36 Finished transferring input files
+...
+001 (96246.000.000) 2025-06-10 11:42:36 Job executing on host: <192.101.165.9:9618?addrs=192.101.165.9-9618&alias=pcaecuda3.ciemat.es&noUDP&sock=startd_3502_a8c0>
+	SlotName: slot1_2@pcaecuda3.ciemat.es
+	CondorScratchDir = "/var/lib/condor/execute/dir_3140866"
+	Cpus = 1
+	Disk = 5284745
+	Memory = 128
+...
+006 (96246.000.000) 2025-06-10 11:42:44 Image size of job updated: 5280
+	6  -  MemoryUsage of job (MB)
+	5280  -  ResidentSetSize of job (KB)
+...
+006 (96246.000.000) 2025-06-10 11:42:54 Image size of job updated: 7568
+	8  -  MemoryUsage of job (MB)
+	7568  -  ResidentSetSize of job (KB)
+...
+006 (96246.000.000) 2025-06-10 14:48:04 Image size of job updated: 7568
+	9  -  MemoryUsage of job (MB)
+	8220  -  ResidentSetSize of job (KB)
+...
+040 (96246.000.000) 2025-06-10 14:48:04 Started transferring output files
+...
+040 (96246.000.000) 2025-06-10 14:48:04 Finished transferring output files
+...
+005 (96246.000.000) 2025-06-10 14:48:04 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:07:37, Sys 0 00:00:20  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:07:37, Sys 0 00:00:20  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	0  -  Run Bytes Sent By Job
+	0  -  Run Bytes Received By Job
+	0  -  Total Bytes Sent By Job
+	0  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        1         1 
+	   Disk (KB)            :       43     1500   5284745 
+	   Memory (MB)          :        9        2       128 
+
+	Job terminated of its own accord at 2025-06-10T09:42:54Z with signal 15.
+...

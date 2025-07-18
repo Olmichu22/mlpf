@@ -94,7 +94,7 @@ def stacked_hist_plot(lst, lst_pandora, path_store, title, title_no_latex, ax=No
         fig, ax = plt.subplots(len(lst), 1, figsize=(6, 13))
         #if len(lst) == 1:
         #    ax = [ax]
-    binsE = [0, 5, 15, 35, 51]
+    binsE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15,  51]
     for i in range(len(lst)):
         if i == 0 or i == 1:
             bins = np.linspace(-0.1, 0.1, 300)

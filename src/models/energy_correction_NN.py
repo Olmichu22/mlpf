@@ -39,6 +39,7 @@ from torch_geometric.nn.models import GAT, GraphSAGE
 from torch_scatter import scatter_mean, scatter_sum
 from gatr import GATr
 import dgl
+import os
 
 
 class Net(nn.Module):
@@ -203,6 +204,8 @@ class EnergyCorrectionWrapper(torch.nn.Module):
             print("Loaded energy correction model weights from ECNetWrapperGNNGlobalFeaturesSeparate", ckpt_file)
 
         else:
+            print(ckpt_file)
+            print(self.charged)
             print("Not loading energy correction model weights")
         if not self.charged:
             self.model.to(device)
@@ -688,6 +691,7 @@ class EnergyCorrection():
         # To be called by the model to initialize the energy correction modules
         ckpt_neutral = main_model.args.ckpt_neutral
         ckpt_charged = main_model.args.ckpt_charged
+        print(ckpt_neutral, ckpt_charged)
         dev = main_model.dev
         num_global_features = 14
         if main_model.args.is_muons:
