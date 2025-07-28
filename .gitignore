@@ -8,3 +8,4 @@ plots/
 *.sif
 *.img
 wandb/
+*.pt
