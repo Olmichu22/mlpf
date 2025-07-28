@@ -75,7 +75,7 @@ def process_batch(batch_df, batch, particles, logger):
         particle = RecoParticle(
             p4=p4, ID=predicted_pid, charge=charge, PDGID=predicted_pid
         )
-        particles[f"event_{int(batch)}"].append(particle)
+        particles[int(batch)].append(particle)
 
 def main():
   if args.verbose:
@@ -96,23 +96,23 @@ def main():
     print(df.info())
     print(df.head())
     print(df.step.value_counts())
-    print(df.number_batch.value_counts())
+    print(df.event_id.unique())
     print(df.pred_pid_matched.value_counts())
     print(f"Columnas \n{df.columns}")
     exit()
   
   else:
     particles = {}
-    number_batches = df['number_batch'].unique()
-    for i,batch in enumerate(number_batches):
+    event_numbers = df['event_id'].unique()
+    for i,event in enumerate(event_numbers):
       if args.test and i >= 10:
-        logger.info("Test mode enabled, processing only the first 10 batchs")
+        logger.info("Test mode enabled, processing only the first 10 events")
         break
-      logger.info(f"Processing Event: {batch}")
-      batch_df = df[df['number_batch'] == batch]
-      logger.debug(f"Particles in Event {batch}:\n{batch_df.pid.value_counts()}")
-      particles[f"event_{int(batch)}"] = []
-      process_batch(batch_df, batch, particles, logger)
+      logger.info(f"Processing Event: {event}")
+      batch_df = df[df['event_id'] == event]
+      logger.debug(f"Particles in Event {event}:\n{batch_df.pid.value_counts()}")
+      particles[int(event)] = []
+      process_batch(batch_df, event, particles, logger)
     # Save the particles to a file
     
   if args.output_file:
@@ -130,10 +130,10 @@ if __name__ == "__main__":
     main()
 
 
-output_mapping = 
-# Save the dictionary to a file
-output_mapping_path = "output_mapping.pkl"
-with open(output_mapping_path, 'wb') as f:
-    pickle.dump(output_mapping, f)
+# output_mapping = 
+# # Save the dictionary to a file
+# output_mapping_path = "output_mapping.pkl"
+# with open(output_mapping_path, 'wb') as f:
+#     pickle.dump(output_mapping, f)
 
-logging.info(f"Output mapping saved to {output_mapping_path}")
+# logging.info(f"Output mapping saved to {output_mapping_path}")

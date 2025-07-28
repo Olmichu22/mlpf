@@ -8,6 +8,7 @@ import os
 import argparse
 from pathlib import Path
 from plotly.io import to_html
+import re
 
 global pos_to_PID, pid_map, real_pid_map, real_particle_colors, particle_colors
 # Mapeo de PID a nombres de partículas
@@ -40,6 +41,8 @@ real_pid_map = {
     -13: "Antimuon",
     14: "Muon Neutrino",
     -14: "Muon Antineutrino",
+    15: "Tau",
+    -15: "Antitau",
     16: "Tau Neutrino",
     -16: "Tau Antineutrino",
     130: "Neutral Kaon",
@@ -92,8 +95,8 @@ real_particle_colors = {
     "Antimuon": "lime",
     "Muon Neutrino": "lightgreen",
     "Muon Antineutrino":"lightgreen",
-    "Tau Neutrino": "lightred",
-    "Tau Antineutrino": "lightred",
+    "Tau Neutrino": "pink",
+    "Tau Antineutrino": "pink",
     "Neutral Kaon":"purple",
     "Charged Kaon (+)":"magenta",
     "Charged Kaon (-)":"magenta",
@@ -168,8 +171,46 @@ def load_tree_data(tree_file, tree_name="events"):
                 best_links = links_ev[max_idx, np.arange(len(max_idx))]
                 hit_to_particle_by_event.append(best_links.tolist())
             # print(hit_to_particle_by_event[0])
-            return hit_x, hit_y, hit_z, hit_energy, hit_type, hit_to_particle_by_event, hits_part_pid
-            
+            # Ramas para partículas generadas
+            part_px = tree["part_px"].array(library="np")  # Momento en X
+            part_py = tree["part_py"].array(library="np")  # Momento en Y
+            part_pz = tree["part_pz"].array(library="np")  # Momento en Z
+            part_energy = tree["part_e"].array(library="np")  # Energía
+            print(part_energy.shape)
+            # Mostramos si hay algún part_energy con longitud != 0
+            no_zero = False
+            for i, ener in enumerate(part_energy):
+                if len(ener) != 0:
+                    print(ener, i)
+                    no_zero = True
+                    break
+            if not no_zero:
+                print("No hay part_energy con longitud != 0")
+            part_pid = tree["part_pid"].array(library="np")  # PID
+            part_vertex_x = tree["part_vertex_x"].array(library="np")  # Vértice X
+            part_vertex_y = tree["part_vertex_y"].array(library="np")  # Vértice Y
+            part_vertex_z = tree["part_vertex_z"].array(library="np")  # Vértice Z
+
+            # Devolver también los datos de partículas generadas
+            results = {
+                "hit_x": hit_x,
+                "hit_y": hit_y,
+                "hit_z": hit_z,
+                "hit_energy": hit_energy,
+                "hit_type": hit_type,
+                "hit_to_particle_by_event": hit_to_particle_by_event,
+                "hits_part_pid": hits_part_pid,
+                "part_px": part_px,
+                "part_py": part_py,
+                "part_pz": part_pz,
+                "part_energy": part_energy,
+                "part_pid": part_pid,
+                "part_vertex_x": part_vertex_x,
+                "part_vertex_y": part_vertex_y,
+                "part_vertex_z": part_vertex_z
+            }
+            return results
+
         except KeyError as e:
             print(f"Error: No se encontró la rama {e}.")
             print("Por favor, verifica los nombres de las ramas en el árbol.")
@@ -211,7 +252,6 @@ def load_model_predictions(pred_file):
 
 def add_tracks_from_hits(fig, hit_positions, hit_type, hit_particle_id,hits_part_pid, event_idx):
     """Añade tracks conectando hits de tracking de la misma partícula"""
-    
     # Filtrar solo hits de tracking (tipo 2)
     track_mask = hit_type[event_idx] == 2
     
@@ -259,6 +299,40 @@ def add_tracks_from_hits(fig, hit_positions, hit_type, hit_particle_id,hits_part
         ))
     
     return fig
+
+def process_gen_particles_from_root(part_px, part_py, part_pz, part_energy, part_pid, 
+                                    part_vertex_x, part_vertex_y, part_vertex_z, event_idx):
+    """Procesa los datos de partículas generadas del ROOT para un evento específico"""
+    
+    # Filtrar por evento
+    px = part_px[event_idx]
+    py = part_py[event_idx]
+    pz = part_pz[event_idx]
+    energy = part_energy[event_idx]
+    pid = part_pid[event_idx]
+    vx = part_vertex_x[event_idx]
+    vy = part_vertex_y[event_idx]
+    vz = part_vertex_z[event_idx]
+    
+    # Crear arrays de posición (usa vértice + dirección normalizada)
+    momentum = np.stack([px, py, pz], axis=1)
+    vertex = np.stack([vx, vy, vz], axis=1)
+    
+    # Normalizar el momento para obtener la dirección
+    momenta_norm = np.linalg.norm(momentum, axis=1, keepdims=True)
+    direction = momentum / np.where(momenta_norm > 0, momenta_norm, 1)  # Evitar división por cero
+    
+    # Calcular posición (se podría ajustar según necesidades)
+    pos = vertex + direction  # O podrías usar solo vertex dependiendo de tu visualización
+    
+    return {
+        "pos": pos,
+        "momentum": momentum,
+        "energy": energy,
+        "type": pid,
+        "vertex": vertex
+    }
+
 
 def plot_hits(fig, hit_positions, hit_energy, hit_type, hit_id, hits_part_pid, event_idx):
     
@@ -415,6 +489,90 @@ def plot_reco_particles(fig, pred_particle_positions, pred_particle_energy, pred
         
     
     return fig
+def plot_root_gen_particle(fig, real_particle_positions,
+                           real_particle_energy,
+                           real_particle_types=None,
+                           real_particle_momentum=None,
+                           event_idx=0):
+    
+
+    
+    r_pos = real_particle_positions 
+    r_energy = real_particle_energy
+    # print(real_particle_types[event_idx])
+    particle_ids = real_particle_types
+    print(r_pos.shape)
+    print(r_energy)
+    print(particle_ids.shape)
+    # Convertir el tipo numérico al PID correspondiente
+    # print(r_types)
+    # particle_ids = [t if not np.isnan(t) else -1 for t in r_types]
+    
+    # Color según tipo de partícula
+    colors = [real_particle_colors.get(real_pid_map.get(pid, "Unknown"), "gray") for pid in particle_ids]
+    # print(colors)
+    # print(r_pos[:,0].shape, r_pos[:,1].shape, r_pos[:,2].shape)
+    r_momentum_mod = np.linalg.norm(real_particle_momentum, axis=1)
+    fig.add_trace(go.Scatter3d(
+        x=r_pos[:, 0], y=r_pos[:, 1], z=r_pos[:, 2],
+        mode='markers',
+        marker=dict(
+            size=14,
+            color=colors,
+            symbol='cross',
+            line=dict(color='black', width=1.5)
+        ),
+        name='Root Gen Particle',
+        hovertext=[f"Partícula: P={e:.3f} GeV/c, Tipo={real_pid_map.get(pid, f'Unknown')} (PID:{pid})" 
+                    for e, pid in zip(r_momentum_mod, particle_ids)]
+    ))
+    
+    particles_p = real_particle_momentum*1000
+    # for idx, gen_particle_pid in enumerate(particle_ids):
+    #     # momentum = get_particle_momentum(r_pos[idx], r_energy[idx], gen_particle_pid)
+    #     # particles_p.append(momentum*1000)
+    
+    particles_p = np.array(particles_p)
+    # Añadir vectores de momento
+    x_lines_p, y_lines_p, z_lines_p = [], [], []
+    for o, d in zip(r_pos, particles_p):
+        tip = o + d
+        # Cada segmento va: origen → punta → (None)
+        x_lines_p += [o[0], tip[0], None]
+        y_lines_p += [o[1], tip[1], None]
+        z_lines_p += [o[2], tip[2], None]
+    
+    hover_info = [
+        f"Momentum: {np.linalg.norm(p):.3f} MeV/c, "
+        f"Type={real_pid_map.get(pid, 'Unknown')} (PID:{pid})"
+        for p, pid in zip(particles_p, particle_ids)
+    ]
+    # Expandir la información hover para cada segmento
+    expanded_hovertext = []
+    for info in hover_info:
+        # Para cada vector, añadir el mismo texto para origen y punta, y texto vacío para None
+        expanded_hovertext += [info, info, ""]
+    
+    colors_lines_p = []
+    for c in colors:
+        colors_lines_p += [c, c, 'rgba(0,0,0,0)']
+    
+    # print(colors_lines_p)
+    fig.add_trace(go.Scatter3d(
+        x=x_lines_p, y=y_lines_p, z=z_lines_p,
+        mode='lines',
+        name='Gen Momentum Vectors',
+        line=dict(
+            color=colors_lines_p,   # color CSS, nombre o hex
+            width=4,
+            dash='dash'
+        ),
+        hovertext=expanded_hovertext
+    ))
+    
+    return fig
+
+
 
 def plot_gen_particle(fig, real_particle_positions, real_particle_energy, real_particle_types=None, event_idx=0):
     
@@ -442,7 +600,8 @@ def plot_gen_particle(fig, real_particle_positions, real_particle_energy, real_p
             ),
             name='Gen Particle',
             hovertext=[f"Partícula: E={e:.3f}, Tipo={real_pid_map.get(pid, f'Unknown')} (PID:{pid})" 
-                      for e, pid in zip(r_energy, particle_ids)]
+                      for e, pid in zip(r_energy, particle_ids)],
+            hoverinfo='text'
         ))
         
         particles_p = []
@@ -525,8 +684,8 @@ def save_html_with_summary(fig, summary_html, output_path):
 
 def plot_cm_matrix(event_confusion_matrix, event_idx):
     """Añade la matriz de confusión al figure como una tabla HTML"""
-    if event_confusion_matrix is None or event_idx not in event_confusion_matrix:
-        return fig
+    # if event_confusion_matrix is None or event_idx not in event_confusion_matrix:
+    #     return fig
 
     true_labels = event_confusion_matrix[event_idx]['gen']
     pred_labels = event_confusion_matrix[event_idx]['reco']
@@ -567,26 +726,70 @@ def plot_cm_matrix(event_confusion_matrix, event_idx):
 def visualize_event(hit_positions, hit_energy, hit_type, hit_id, hits_part_pid,
                     pred_particle_positions, pred_particle_energy, pred_particle_types=None,
                     real_particle_positions=None, real_particle_energy=None, real_particle_types=None,
-                    event_confusion_matrix=None, event_idx=0, output_dir="./plots"):
+                    data_from_root=None,
+                    event_confusion_matrix=None, event_idx=0, file_idx=0, output_dir="./plots",
+                    only_gen=False, only_reco=False, gen_root=False, only_hits=False):
     """Visualiza los hits y las partículas reconstruidas para un evento"""
-    
+    original_event_idx = event_idx
+    event_idx = event_idx - 1
+    print(f"Visualizando evento {original_event_idx} (índice {event_idx})")
+
+    # Etiquetas de root_particles
+    #     "pos": pos,
+    #     "momentum": momentum,
+    #     "energy": energy,
+    #     "type": pid,
+    #     "vertex": vertex
     # Crear figura 3D
     fig = go.Figure()
-    
-    fig = plot_hits(fig, hit_positions, hit_energy, hit_type, hit_id, hits_part_pid, event_idx)
-    fig = plot_reco_particles(
-        fig, pred_particle_positions, pred_particle_energy, pred_particle_types, event_idx
-    )
-    fig = plot_gen_particle(
-        fig, real_particle_positions, real_particle_energy, real_particle_types, event_idx
-    )
-        
-    
-    cm_summary = plot_cm_matrix(event_confusion_matrix, event_idx)
-    
+    if only_hits:
+        fig = plot_hits(fig, hit_positions, hit_energy, hit_type, hit_id, hits_part_pid, event_idx)
+    else:
+        fig = plot_hits(fig, hit_positions, hit_energy, hit_type, hit_id, hits_part_pid, event_idx)
+        if only_gen:
+            print("Visualizando partículas generadas")
+            fig = plot_gen_particle(
+                fig, real_particle_positions, real_particle_energy, real_particle_types, event_idx
+            )
+
+        if only_reco:
+            fig = plot_reco_particles(
+                fig, pred_particle_positions, pred_particle_energy, pred_particle_types, event_idx
+            )
+        if gen_root:
+            
+            root_particles = process_gen_particles_from_root(
+                data_from_root["part_px"], data_from_root["part_py"], data_from_root["part_pz"],
+                data_from_root["part_energy"], data_from_root["part_pid"],
+                data_from_root["part_vertex_x"], data_from_root["part_vertex_y"], data_from_root["part_vertex_z"],
+                event_idx
+            )
+            print("Visualizando partículas generadas desde ROOT")
+            # print(root_particles)
+            fig = plot_root_gen_particle(
+                fig, root_particles["vertex"],
+                root_particles["energy"],
+                root_particles["type"],
+                root_particles["momentum"], event_idx)
+            
+
+        if not only_gen and not only_reco and not gen_root:
+            fig = plot_hits(fig, hit_positions, hit_energy, hit_type, hit_id, hits_part_pid, event_idx)
+            fig = plot_reco_particles(
+                fig, pred_particle_positions, pred_particle_energy, pred_particle_types, event_idx
+            )
+            fig = plot_gen_particle(
+                fig, real_particle_positions, real_particle_energy, real_particle_types, event_idx
+            )
+    # try:
+    if not gen_root:
+        cm_summary = plot_cm_matrix(event_confusion_matrix, event_idx)
+    else:
+        # print(f"Error al generar la matriz de confusión: {e}")
+        cm_summary = "<p>No Confusion Matrix</p>"
     # Configurar la presentación con Z horizontal
     fig.update_layout(
-        title=f"Event {event_idx}",
+        title=f"Event {original_event_idx}",
         scene=dict(
             xaxis_title='X [mm]',
             yaxis_title='Y [mm]',
@@ -611,7 +814,7 @@ def visualize_event(hit_positions, hit_energy, hit_type, hit_id, hits_part_pid,
     save_html_with_summary(
     fig,
     cm_summary, 
-    os.path.join(output_dir, f"event_{event_idx}.html")
+    os.path.join(output_dir, f"file_{file_idx}_event_{original_event_idx}.html")
     )
     return fig
 
@@ -697,19 +900,33 @@ def main():
                         help='Índice del evento a visualizar')
     parser.add_argument('--output-dir', type=str, default='./hits_cluster_plots',
                         help='Directorio para guardar las visualizaciones')
-    
+    parser.add_argument('--only-gen', action='store_true',
+                        help='Solo visualizar partículas generadas (sin reconstrucción)')
+    parser.add_argument('--only-reco', action='store_true',
+                        help='Solo visualizar partículas reconstruidas (sin generadas)')
+    parser.add_argument('--gen-root', action='store_true',
+                        help='Visualizar partículas generadas desde el ROOT original')
+    parser.add_argument('--only-hits', action='store_true',
+                        help='Solo visualizar hits sin partículas')
     args = parser.parse_args()
     
     # Cargar datos del tree original
-    hit_x, hit_y, hit_z, hit_energy, hit_type, hit_id, hit_part_pid = load_tree_data(args.tree_file)
-    hit_positions = [hit_x, hit_y, hit_z]
-    
+    data_from_root = load_tree_data(args.tree_file)
+
+    hit_positions = [data_from_root["hit_x"],
+                     data_from_root["hit_y"],
+                     data_from_root["hit_z"]]
+
+    pred_dir = args.pred_dir
+    pred_dir = os.path.join(pred_dir, "showers_df_evaluation")
+    # Expresión regular para obtener el indice usando pred_X
+    file_idx = re.search(r"pred_(\d+)", pred_dir).group(1)
     # Buscar archivo de predicciones correspondiente al evento
-    pred_files = list(Path(args.pred_dir).glob("*_hdbscan_option*_v*.pt"))
+    pred_files = list(Path(pred_dir).glob("*_hdbscan_option*_v*.pt"))
     if not pred_files:
-        pred_files = list(Path(args.pred_dir).glob("*.pt"))
+        pred_files = list(Path(pred_dir).glob("*.pt"))
     if not pred_files:
-        print(f"No se encontraron archivos de predicción en {args.pred_dir}")
+        print(f"No se encontraron archivos de predicción en {pred_dir}")
         return
 
     print(f"Usando archivo de predicciones: {pred_files[0]}")
@@ -728,14 +945,27 @@ def main():
         gen_particle_data = get_particle_data(batch_data, batch_idx, gen_particle_data, data_type="gen")
         event_confusion_matrix = get_event_confusion_matrix(batch_data, batch_idx, event_confusion_matrix)
     
+        # root_gen_data = process_gen_particles_from_root(
+        #     results["part_px"], results["part_py"], results["part_pz"],
+        #     results["part_energy"], results["part_pid"],
+        #     results["part_vertex_x"], results["part_vertex_y"], results["part_vertex_z"],
+        #     batch_idx
+        # )
+        
     # Dibujar el evento específico
     visualize_event(
-        hit_positions, hit_energy, hit_type,hit_id,hit_part_pid,
+        hit_positions, data_from_root["hit_energy"], data_from_root["hit_type"], data_from_root["hit_to_particle_by_event"], data_from_root["hits_part_pid"],
         reco_particle_data["pos"], reco_particle_data["energy"], reco_particle_data["type"],
         gen_particle_data["pos"], gen_particle_data["energy"], gen_particle_data["type"],
+        data_from_root,
         event_confusion_matrix=event_confusion_matrix,
         event_idx=args.event,
-        output_dir=args.output_dir
+        file_idx = file_idx,
+        output_dir=args.output_dir,
+        only_gen=args.only_gen,
+        only_reco=args.only_reco,
+        gen_root=args.gen_root,
+        only_hits=args.only_hits
     )
     
     print(f"Visualización guardada en {args.output_dir}/event_{args.event}.html")
