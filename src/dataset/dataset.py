@@ -287,6 +287,17 @@ class _SimpleIter(object):
     def get_data(self, i):
         # inputs
         X = {k: self.table["_" + k][i].copy() for k in self._data_config.input_names}
+        
+        if "event_info" in X:
+            print("X[event_info] =", X["event_info"])
+            print("Tipo:", type(X["event_info"]))
+            if len(X["event_info"]) > 0:
+                print("Primer elemento:", X["event_info"][0], "tipo:", type(X["event_info"][0]))
+        # Extraer event_id si está disponible en los datos de entrada
+        event_id = None
+        if "event_info" in X and X["event_info"] is not None and len(X["event_info"]) > 0:
+            event_id = int(X["event_info"][0])  # Tomar el primer elemento como ID del evento
+        
         if not self.synthetic:
             # t0 = time.time()
             [g, features_partnn], graph_empty = create_graph(
@@ -302,7 +313,9 @@ class _SimpleIter(object):
                 npart_min=npart_min,
                 npart_max=npart_max,
             )
-        return [g, features_partnn], graph_empty
+            
+        # Devolver event_id junto con los datos del grafo
+        return [g, features_partnn, event_id], graph_empty
 
 
 class SimpleIterDataset(torch.utils.data.IterableDataset):

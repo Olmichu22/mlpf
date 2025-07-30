@@ -224,7 +224,12 @@ def create_and_store_graph_output(
                 #fakes_labels=fakes_labels
             )
             if len(df_event1) > 1:
+                # Añadir event_id al DataFrame si está disponible en el grafo
+                if "event_id" in dic["graph"].ndata:
+                    event_id = dic["graph"].ndata["event_id"][0].item()  # Tomar el ID del primer nodo
+                    df_event1["event_id"] = event_id
                 df_list1.append(df_event1)
+                
             if predict:
                 df_event_pandora = generate_showers_data_frame(
                     labels_pandora,
@@ -241,7 +246,12 @@ def create_and_store_graph_output(
                     tracks=tracks,
                     save_plots_to_folder=path_save + "/Pandora",
                 )
+                
                 if df_event_pandora is not None and type(df_event_pandora) is not tuple:
+                    # Añadir event_id también al DataFrame de pandora
+                    if "event_id" in dic["graph"].ndata:
+                        event_id = dic["graph"].ndata["event_id"][0].item()
+                        df_event_pandora["event_id"] = event_id
                     df_list_pandora.append(df_event_pandora)
                 else:
                     print("Not appending to df_list_pandora")

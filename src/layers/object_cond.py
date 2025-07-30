@@ -131,13 +131,47 @@ def calc_LV_Lbeta(
     # print("n_hits_per_object", n_hits_per_object)
     batch_object = batch_cluster[is_object]
     n_objects = is_object.sum()
- 
     assert object_index.size() == (n_hits_sig,)
     assert is_object.size() == (n_clusters,)
-    assert torch.all(n_hits_per_object > 0)
+    try:
+        assert torch.all(n_hits_per_object > 0)
+    except Exception as e:
+        # zero_hits_mask = n_hits_per_object == 0
+
+        # if zero_hits_mask.any():
+        #     # Índices de objetos con 0 hits
+        #     zero_obj_indices = torch.nonzero(zero_hits_mask, as_tuple=False).squeeze()
+        #     print(zero_obj_indices)
+        #     print(batch_object)
+        #     # Batch correspondientes a esos objetos
+        #     zero_batches = batch_object[zero_obj_indices]
+
+        #     # Prints detallados
+        #     print(f"Objetos {zero_obj_indices}")
+        #     print(f"Batches {zero_batches}")
+        #     event_ids = g.ndata['event_id']          # shape (n_hits,)
+        #     # batch: shape (n_hits,), valores 0..batch_size-1
+        #     event_id_per_batch = scatter_max(event_ids, batch)[0]  # shape (batch_size,)
+
+        #     # 4) Extrae los event_id de los batches afectados
+        #     zero_event_ids = event_id_per_batch[zero_batches]
+        #     print(zero_event_ids)
+        #     # for obj_idx, b in zip(zero_obj_indices, zero_batches):
+        #     #     print(f"→ El objeto #{obj_idx} en el batch {b} tiene 0 hits.")
+        # torch.set_printoptions(threshold=float('inf'))
+
+        # # Imprimir todas las variables de utilidad con valores únicos
+        # print(f"Error: {e}")
+        # print(f"n_hits_per_object: {n_hits_per_object.unique()}")
+        # print(f"n_objects_per_event: {n_objects_per_event.unique()}")
+        # print(f"Signal hits per event: {n_sig_hits_per_event.unique()}")
+        # print(f"n_objects: {n_objects}")
+        # print(f"Event_id: {g.ndata['event_id'].unique()}")
+        # print(f"Batch: {batch.unique()}")
+        raise e
     assert object_index.max() + 1 == n_objects
 
-    # ________________________________
+    # ______________________________
     # L_V term
 
     # Calculate q

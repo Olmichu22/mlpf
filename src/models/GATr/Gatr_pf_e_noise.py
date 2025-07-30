@@ -268,9 +268,49 @@ class ExampleWrapper(L.LightningModule):
         if not os.path.exists(cluster_features_path):
             os.makedirs(cluster_features_path)
         self.validation_step_outputs = []
+        
+        # Extraer los componentes del batch, incluyendo event_id si está disponible
         y = batch[1]
         batch_g = batch[0]
+        event_ids = batch[2] if len(batch) > 2 else None
+        
+        
+        
         shap_vals, ec_x = None, None
+        # try:
+        #     # Guardar los event_ids si están disponibles
+        if event_ids is not None:
+            # Obtener la asignación de nodos a grafos en el batch
+            batch_numbers = obtain_batch_numbers(batch_g)
+            
+            # Inicializar tensor para event_ids
+            event_id_tensor = torch.zeros_like(batch_numbers, dtype=torch.int64)
+            
+            # Asignar los event_ids correspondientes a cada nodo según su batch
+            event_id_to_batch_number = {}
+            for i, event_id in enumerate(event_ids):
+                mask = batch_numbers == i
+                event_id_tensor[mask] = event_id
+                event_id_to_batch_number[event_id] = i
+                
+            # Asignar al grafo en el dispositivo correcto
+            batch_g.ndata["event_id"] = event_id_tensor.to(device=batch_g.device)
+            # if self.global_step < 200:
+            #     self.args.losstype = "hgcalimplementation"
+            # else:
+            #     self.args.losstype = "vrepweighted"
+            # después de construir event_id_tensor…
+            # if 556 in event_id_to_batch_number.keys():
+            
+            #     keep_nodes = event_id_tensor != 556
+            #     keep_events = [i for i, eid in enumerate(event_ids) if eid != 556]
+            #     # 1) crear subgrafo solo con nodos que NO sean del evento 556
+            #     subg = dgl.node_subgraph(batch_g, keep_nodes).to(batch_g.device)
+
+            #     y_filtered = y[keep_events]
+            #     batch_g = subg
+            #     y = y_filtered
+
         if self.args.correction:
             result = self(batch_g, y, 1)
             model_output = result[0]

@@ -50,6 +50,11 @@ preprocess:
   data_fraction: 0.1
 
 inputs:
+   event_info:
+      length: 1
+      pad_mode: constant
+      vars:
+         - [event_number, null]  # event id
    pf_points:
       pad_mode: wrap
       length: 25000

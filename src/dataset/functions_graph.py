@@ -416,7 +416,8 @@ def graph_batch_func(list_graphs):
         list_graphs (list): list of graphs from the iterable dataset
 
     Returns:
-        batch dgl: dgl batch of graphs
+        tuple: (bg, ys, event_ids) where bg is the batch of graphs, 
+               ys are the particle ground truths, and event_ids are the corresponding event identifiers
     """
     list_graphs_g = [el[0] for el in list_graphs]
     # list_y = add_batch_number(list_graphs)
@@ -424,8 +425,18 @@ def graph_batch_func(list_graphs):
     # ys = torch.reshape(ys, [-1, list_y[0].shape[1]])
     ys = concatenate_Particles_GT(list_graphs)
     bg = dgl.batch(list_graphs_g)
+    
+    # Extract event_ids if available in the input data
+    event_ids = []
+    for graph_data in list_graphs:
+        if len(graph_data) > 2 and graph_data[2] is not None:
+            event_ids.append(graph_data[2])
+    
     # reindex particle number
-    return bg, ys
+    if event_ids:
+        return bg, ys, event_ids
+    else:
+        return bg, ys
 
 def make_bad_tracks_noise_tracks(g, y ):
     # is_chardged =scatter_add((g.ndata["hit_type"]==1).view(-1), g.ndata["particle_number"].long())[1:]

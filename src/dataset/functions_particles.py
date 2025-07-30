@@ -119,6 +119,12 @@ class Particles_GT:
     def __len__(self):
         return len(self.E)
 
+    def __getitem__(self, item):
+        """ Return filtered copy of this object """
+        new = self.copy()
+        new.mask(item)
+        return new
+    
     def mask(self, mask):
         for k in self.__dict__:
             if getattr(self, k) is not None:
