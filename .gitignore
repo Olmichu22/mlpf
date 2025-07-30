@@ -9,3 +9,4 @@ plots/
 *.img
 wandb/
 *.pt
+*.html
