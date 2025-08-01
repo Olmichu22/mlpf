@@ -10,3 +10,4 @@ plots/
 wandb/
 *.pt
 *.html
+train_model.sh
