@@ -11,3 +11,6 @@ wandb/
 *.pt
 *.html
 train_model.sh
+*.ckpt
+*.pkl
+*.csv

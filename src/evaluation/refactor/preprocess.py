@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from src.utils.pid_con                                                                                                                                                                      sion import pid_conversion_dict
+from src.utils.pid_conversion import pid_conversion_dict
 from src.utils.inference.per_particle_metrics import compute_score_certainty
 import torch
 

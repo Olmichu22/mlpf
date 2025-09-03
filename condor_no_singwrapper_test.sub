@@ -1,16 +1,12 @@
 #+CieRunInGpu=True
 +CieRunInGpu3=True
-+CieSingularityPath="/nfs/cms/arqolmo/GPU_train/mlpf/gatr_v9.sif"
-+CieSingularityDebug=1
-#request_gpus = 1
+#+CieLongJob=True
 
 output = tau_trained_models/$(ClusterId).$(ProcId).out
 error  = tau_trained_models/$(ClusterId).$(ProcId).err
 log    = tau_trained_models/$(ClusterId).$(ProcId).log
 
-executable = train_model.sh
-arguments =
+executable = train_model_copy.sh
+arguments  =
+queue
 
-transfer_output_files = ""
-
-Queue

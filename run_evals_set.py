@@ -3,17 +3,26 @@ import subprocess
 import sys
 import pandas as pd
 import time
+import argparse
 def main():
-    if len(sys.argv) != 3:
-        print(f"Uso: {sys.argv[0]} <inicio> <fin>")
-        print("Ejemplo: python run_evals.py 10 20")
+    parser = argparse.ArgumentParser(description='Run evaluations for a range of models.')
+    parser.add_argument("-r", "--range", type=int, nargs="+", description="Range of test files to evaluate.")
+    args = parser.parse_args()
+    if not args.range or len(args.range) != 2:
+        print("Error: Please provide a valid range with two integers, e.g., -r 0 10")
         sys.exit(1)
-
-    inicio, fin = map(int, sys.argv[1:])
+    parser.add_argument("-m", "--model", type=str, default="ztt", 
+                        help="Model prefix to use for evaluation, default is 'ztt'.")
+    if args.model == "ztt":
+        prefix = "tau_trained_models"
+    elif args.model == "gun":
+        prefix = "trained_models"
+    inicio, fin = args.range
     errors = {}
     for i in range(inicio, fin + 1):
-        data_test = f"/nfs/cms/arqolmo/GPU_train/mlpf/test_trees/test_tree_{i}.root"
-        model_prefix = f"/nfs/cms/arqolmo/GPU_train/mlpf/trained_models/pred_{i}/"
+        # data_test = f"/nfs/cms/arqolmo/GPU_train/mlpf/test_trees/test_tree_{i}.root"
+        model_prefix = f"/nfs/cms/arqolmo/GPU_train/mlpf/{prefix}/pred_{i}/"
+        data_test = f"/pnfs/ciemat.es/data/calice/arqolmo/TestTrees/test_tree_{i}.root"
 
         cmd = [
             "python", "-m", "src.train_lightning1",
@@ -24,7 +33,7 @@ def main():
             "--model-prefix",   model_prefix,
             "--wandb-displayname", "eval_gun_drlog",
             "--num-workers",    "0",
-            "--gpus",           "1",
+            "--gpus",           "0",
             "--batch-size",     "10",
             "--start-lr",       "1e-3",
             "--num-epochs",     "100",

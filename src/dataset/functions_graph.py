@@ -348,7 +348,14 @@ def create_graph(
             graph_empty = True 
         if pos_xyz_hits.shape[0] < 10:
             graph_empty = True
+    # Dolores había quitado este if, pero parece que es necesario para que no de error    
+    if graph_empty:
         return [g, y_data_graph], graph_empty
+    # Si g es un entero, mostramos g
+    if isinstance(g, int):
+        print(f"Graph is an integer: {g}")
+        # graph_empty = True
+        # return [g, y_data_graph], graph_empty
     g = store_track_at_vertex_at_track_at_calo(g)
     g = make_bad_tracks_noise_tracks(g, y_data_graph)
     # g = make_graph_with_edges(g)
@@ -413,8 +420,17 @@ def graph_batch_func(list_graphs):
     # ys = torch.reshape(ys, [-1, list_y[0].shape[1]])
     ys = concatenate_Particles_GT(list_graphs)
     bg = dgl.batch(list_graphs_g)
+    # Extract event_ids if available in the input data
+    event_ids = []
+    for graph_data in list_graphs:
+        if len(graph_data) > 2 and graph_data[2] is not None:
+            event_ids.append(graph_data[2])
+    
     # reindex particle number
-    return bg, ys
+    if event_ids:
+        return bg, ys, event_ids
+    else:
+        return bg, ys
 
 def make_bad_tracks_noise_tracks(g, y ):
     # is_chardged =scatter_add((g.ndata["hit_type"]==1).view(-1), g.ndata["particle_number"].long())[1:]

@@ -12,7 +12,7 @@ def main():
     parser.add_argument("end",   type=int, help="Valor final de X (inclusive)")
     args = parser.parse_args()
 
-    trained_models_base = "/nfs/cms/arqolmo/GPU_train/mlpf/trained_models"
+    trained_models_base = "/nfs/cms/arqolmo/GPU_train/mlpf/tau_trained_models"
     sim_files_base     = "/pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/ZTauTau_SMPol_25Sept_MuonFix/"
 
     results = []

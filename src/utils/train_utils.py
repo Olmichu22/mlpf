@@ -53,7 +53,10 @@ def model_setup(args, data_config):
 
     if args.gpus:
         gpus = [int(i) for i in args.gpus.split(",")]  # ?
+        print("Using GPUs:", gpus)
         dev = torch.device(gpus[0])
+        print(dev)
+        
         print("using GPUs:", gpus)
     else:
         gpus = None
